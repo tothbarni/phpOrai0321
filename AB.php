@@ -101,40 +101,44 @@ class AB
 
     public function megjelenitKartyaTabla()
     {
-        $sql = "SELECT f.formaAzon, f.szoveg 
-                FROM forma AS f 
-                WHERE f.formaAzon IN (SELECT DISTINCT formaAzon FROM kartya) 
-                ORDER BY f.formaAzon";
-        $result = $this->kapcsolat->query($sql);
-        $cardTypes = array();
-        while ($row = $result->fetch_assoc()) {
-            $cardTypes[$row['formaAzon']] = $row['szoveg'];
+        $lekerdezes = "SELECT f.formaAzon, f.szoveg 
+                       FROM forma AS f 
+                       WHERE f.formaAzon IN (SELECT DISTINCT formaAzon FROM kartya) 
+                       ORDER BY f.formaAzon";
+        $eredmeny = $this->kapcsolat->query($lekerdezes);
+        $kartyatipusok = array();
+        while ($sor = $eredmeny->fetch_assoc()) {
+            $kartyatipusok[$sor['formaAzon']] = $sor['szoveg'];
         }
-        $sql = "SELECT szAzon, nev, kep FROM szin ORDER BY szAzon";
-        $resultSuits = $this->kapcsolat->query($sql);
-        $suits = array();
-        while ($row = $resultSuits->fetch_assoc()) {
-            $suits[$row['szAzon']] = $row;
+        
+        $lekerdezes = "SELECT szAzon, nev, kep FROM szin ORDER BY szAzon";
+        $eredmenySzin = $this->kapcsolat->query($lekerdezes);
+        $szinek = array();
+        while ($sor = $eredmenySzin->fetch_assoc()) {
+            $szinek[$sor['szAzon']] = $sor;
         }
-        $cards = array();
-        $sql = "SELECT formaAzon, szinAzon FROM kartya";
-        $resultCards = $this->kapcsolat->query($sql);
-        while ($row = $resultCards->fetch_assoc()) {
-            $cards[$row['szinAzon']][$row['formaAzon']] = true;
+        
+        $kartyaTomb = array();
+        $lekerdezes = "SELECT formaAzon, szinAzon FROM kartya";
+        $eredmenyKartya = $this->kapcsolat->query($lekerdezes);
+        while ($sor = $eredmenyKartya->fetch_assoc()) {
+            $kartyaTomb[$sor['szinAzon']][$sor['formaAzon']] = true;
         }
+        
         echo "<table border='1' style='border-collapse: collapse; text-align: center;'>";
         echo "<tr><th>Szin</th>";
-        foreach ($cardTypes as $formaAzon => $szoveg) {
+        foreach ($kartyatipusok as $formaAzon => $szoveg) {
             echo "<th>$szoveg</th>";
         }
         echo "</tr>";
-        foreach ($suits as $suitId => $suitData) {
+        
+        foreach ($szinek as $szinId => $szinAdatok) {
             echo "<tr>";
-            echo "<td>" . $suitData['nev'] . "<br><img src='forras/" . $suitData['kep'] . "' alt='" . $suitData['nev'] . "' width='50'></td>";
-            foreach ($cardTypes as $formaAzon => $szoveg) {
+            echo "<td>" . $szinAdatok['nev'] . "<br><img src='forras/" . $szinAdatok['kep'] . "' alt='" . $szinAdatok['nev'] . "></td>";
+            foreach ($kartyatipusok as $formaAzon => $szoveg) {
                 echo "<td>";
-                if (isset($cards[$suitId][$formaAzon])) {
-                    echo "<img src='forras/" . $suitData['kep'] . "' alt='$szoveg' width='50'>";
+                if (isset($kartyaTomb[$szinId][$formaAzon])) {
+                    echo "<img src='forras/" . $szinAdatok['kep'] . "' alt='$szoveg'>";
                 } else {
                     echo "-";
                 }
@@ -145,6 +149,7 @@ class AB
         echo "</table>";
     }
     
+
 
 
     public function modosit($tabla, $hol, $uj, $regi)
